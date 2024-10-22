@@ -8,6 +8,8 @@ jobs:
     if: github.repository == 'sourcegraph/cody'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
