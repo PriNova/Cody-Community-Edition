@@ -25,6 +25,7 @@ import {
 } from 'react'
 import type { UserAccountInfo } from '../../../../../Chat'
 import { type ClientActionListener, useClientActionListener } from '../../../../../client/clientState'
+import { getVSCodeAPI } from '../../../../../utils/VSCodeApi'
 import { useTelemetryRecorder } from '../../../../../utils/telemetry'
 import { useExperimentalOneBox } from '../../../../../utils/useExperimentalOneBox'
 import styles from './HumanMessageEditor.module.css'
@@ -91,6 +92,8 @@ export const HumanMessageEditor: FunctionComponent<{
 }) => {
     const telemetryRecorder = useTelemetryRecorder()
 
+    const [imageFile, setImageFile] = useState<File | undefined>(undefined)
+
     const editorRef = useRef<PromptEditorRefAPI>(null)
     useImperativeHandle(parentEditorRef, (): PromptEditorRefAPI | null => editorRef.current, [])
 
@@ -147,6 +150,27 @@ export const HumanMessageEditor: FunctionComponent<{
             }
 
             const value = editorRef.current.getSerializedValue()
+            if (imageFile) {
+                const readFileGetBase64String = (file: File): Promise<string> => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader()
+                        reader.onload = () => {
+                            const base64 = reader.result
+                            if (base64 && typeof base64 === 'string') {
+                                resolve(base64.split(',')[1])
+                            } else {
+                                reject(new Error('Failed to read file'))
+                            }
+                        }
+                        reader.onerror = () => reject(new Error('Failed to read file'))
+                        reader.readAsDataURL(file)
+                    })
+                }
+
+                const base64Image = await readFileGetBase64String(imageFile)
+                getVSCodeAPI().postMessage({ command: 'chat/upload-file', base64Image })
+                setImageFile(undefined)
+            }
             parentOnSubmit(value, intent)
 
             telemetryRecorder.recordEvent('cody.humanMessageEditor', 'submit', {
@@ -163,7 +187,15 @@ export const HumanMessageEditor: FunctionComponent<{
                 },
             })
         },
-        [submitState, parentOnSubmit, onStop, telemetryRecorder.recordEvent, isFirstMessage, isSent]
+        [
+            submitState,
+            parentOnSubmit,
+            onStop,
+            telemetryRecorder.recordEvent,
+            isFirstMessage,
+            isSent,
+            imageFile,
+        ]
     )
 
     const onEditorEnterKey = useCallback(

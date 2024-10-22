@@ -77,6 +77,8 @@ const getContextFromIntent = async ({
                         source: ContextItemSource.Editor,
                         range: new vscode.Range(prefix.range.start, suffix.range.end),
                     },
+                    content: '',
+                    base64Image: '',
                 },
             ]
         }
@@ -96,6 +98,8 @@ const getContextFromIntent = async ({
                     speaker: 'human',
                     text: populateCodeContextTemplate(truncatedPrecedingText, uri, undefined, 'edit'),
                     file: { type: 'file', uri, source: ContextItemSource.Editor, range: prefix.range },
+                    content: '',
+                    base64Image: '',
                 })
             }
             if (truncatedFollowingText.trim().length > 0) {
@@ -103,6 +107,8 @@ const getContextFromIntent = async ({
                     speaker: 'human',
                     text: populateCodeContextTemplate(truncatedFollowingText, uri, undefined, 'edit'),
                     file: { type: 'file', uri, source: ContextItemSource.Editor, range: suffix.range },
+                    content: '',
+                    base64Image: '',
                 })
             }
             return contextMessages
@@ -125,6 +131,8 @@ const getContextFromIntent = async ({
                             speaker: 'human' as const,
                             text: populateCurrentEditorDiagnosticsTemplate(diagnostic, uri),
                             file: { type: 'file', uri, source: ContextItemSource.Editor },
+                            content: '',
+                            base64Image: '',
                         }) satisfies ContextMessage
                 ),
                 ...[truncatedPrecedingText, truncatedFollowingText]
@@ -135,6 +143,8 @@ const getContextFromIntent = async ({
                                 speaker: 'human' as const,
                                 text: populateCodeContextTemplate(text, uri, undefined, 'edit'),
                                 file: { type: 'file', uri, source: ContextItemSource.Editor },
+                                content: '',
+                                base64Image: '',
                             }) satisfies ContextMessage
                     ),
             ]

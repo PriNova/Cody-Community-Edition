@@ -34,6 +34,8 @@ export class PromptBuilder {
      */
     public contextItems: ContextItem[] = []
 
+    public images: string[] = []
+
     /**
      * Convenience constructor because loading the tokenizer is async due to its large size.
      */
@@ -47,8 +49,26 @@ export class PromptBuilder {
         if (this.contextItems.length > 0) {
             this.buildContextMessages()
         }
-
+        this.buildImageMessages()
         return this.prefixMessages.concat([...this.reverseMessages].reverse())
+    }
+
+    private buildImageMessages(): void {
+        for (const image of this.images) {
+            const imageMessage: Message = {
+                speaker: 'human',
+                content: [
+                    {
+                        type: 'image_url',
+                        image_url: {
+                            // TODO: Handle PNG/JPEG, don't hardcode to JPEG
+                            url: `data:image/jpeg;base64,${image}`,
+                        },
+                    },
+                ],
+            }
+            this.reverseMessages.push(...[ASSISTANT_MESSAGE, imageMessage])
+        }
     }
 
     private buildContextMessages(): void {
@@ -106,6 +126,12 @@ export class PromptBuilder {
         }
         // All messages were added successfully.
         return undefined
+    }
+
+    public tryAddImage(base64Image: string | undefined): void {
+        if (base64Image) {
+            this.images.push(base64Image)
+        }
     }
 
     public async tryAddContext(
