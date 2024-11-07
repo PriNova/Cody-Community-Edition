@@ -40,7 +40,7 @@ export const SentComplete: StoryObj<typeof meta> = {
 export const Scrolling: StoryObj<typeof meta> = {
     args: {
         message: {
-            speaker: 'human',
+            role: 'human',
             text: PromptString.unsafe_fromUserQuery(
                 new Array(100)
                     .fill(0)
@@ -85,7 +85,7 @@ export const WithInitialContext: StoryObj<typeof meta> = {
         </ExtensionAPIProviderForTestsOnly>
     ),
     args: {
-        message: { speaker: 'human', text: ps`` },
+        message: { role: 'human', text: ps`` },
         isFirstMessage: true,
     },
 }
@@ -117,7 +117,7 @@ export const WithInitialContextFileTooLarge: StoryObj<typeof meta> = {
         </ExtensionAPIProviderForTestsOnly>
     ),
     args: {
-        message: { speaker: 'human', text: ps`` },
+        message: { role: 'human', text: ps`` },
         isFirstMessage: true,
     },
 }

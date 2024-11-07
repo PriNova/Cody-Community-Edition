@@ -60,19 +60,19 @@ export class Claude extends DefaultModel {
 
         return [
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`You are a code completion AI designed to take the surrounding code and shared context into account in order to predict and suggest high-quality code to complete the code enclosed in ${OPENING_CODE_TAG} tags. You only respond with code that works and fits seamlessly with surrounding code if any or use best practice and nothing else.`,
             },
             {
-                speaker: 'assistant',
+                role: 'assistant',
                 text: ps`I am a code completion AI with exceptional context-awareness designed to auto-complete nested code blocks with high-quality code that seamlessly integrates with surrounding code.`,
             },
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`Below is the code from file path ${fileName}. Review the code outside the XML tags to detect the functionality, formats, style, patterns, and logics in use. Then, use what you detect and reuse methods/libraries to complete and enclose completed code only inside XML tags precisely without duplicating existing implementations. Here is the code: \n\`\`\`\n${infillPrefix}${OPENING_CODE_TAG}${CLOSING_CODE_TAG}${infillSuffix}\n\`\`\``,
             },
             {
-                speaker: 'assistant',
+                role: 'assistant',
                 text: ps`${OPENING_CODE_TAG}${infillBlock}`,
             },
         ]
@@ -109,14 +109,14 @@ export class Claude extends DefaultModel {
         for (const snippet of snippets) {
             const snippetMessages: Message[] = [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text:
                         'symbol' in snippet
                             ? this.symbolSnippetToPromptString(snippet)
                             : this.fileSnippetToPromptString(snippet),
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     text: ps`I will refer to this code to complete your next request.`,
                 },
             ]

@@ -6,7 +6,7 @@ export function messagesToText(messages: Message[]): string {
     return messages
         .map(
             message =>
-                `${message.speaker === 'human' ? anthropic.HUMAN_PROMPT : anthropic.AI_PROMPT}${
+                `${message.role === 'human' ? anthropic.HUMAN_PROMPT : anthropic.AI_PROMPT}${
                     message.text === undefined ? '' : ` ${message.text}`
                 }`
         )

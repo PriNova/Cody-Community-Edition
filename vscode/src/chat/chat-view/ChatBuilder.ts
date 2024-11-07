@@ -120,7 +120,7 @@ export class ChatBuilder {
         if (!lastMessage) {
             throw new Error('no last message')
         }
-        if (lastMessage.speaker !== 'human') {
+        if (lastMessage.role !== 'human') {
             throw new Error('Cannot set intent for bot message')
         }
 
@@ -137,7 +137,7 @@ export class ChatBuilder {
         if (!lastMessage) {
             throw new Error('no last message')
         }
-        if (lastMessage.speaker !== 'human') {
+        if (lastMessage.role !== 'human') {
             throw new Error('Cannot set new context used for bot message')
         }
 
@@ -152,11 +152,11 @@ export class ChatBuilder {
         this.changeNotifications.next()
     }
 
-    public addHumanMessage(message: Omit<ChatMessage, 'speaker'>): void {
-        if (this.messages.at(-1)?.speaker === 'human') {
+    public addHumanMessage(message: Omit<ChatMessage, 'role'>): void {
+        if (this.messages.at(-1)?.role === 'human') {
             throw new Error('Cannot add a user message after a user message')
         }
-        this.messages.push({ ...message, speaker: 'human', base64Image: this.getAndResetImage() })
+        this.messages.push({ ...message, role: 'human', base64Image: this.getAndResetImage() })
         this.changeNotifications.next()
     }
 
@@ -167,13 +167,13 @@ export class ChatBuilder {
     public static readonly NO_MODEL = Symbol('noChatModel')
 
     public addBotMessage(
-        message: Omit<Message, 'speaker'>,
+        message: Omit<Message, 'role'>,
         model: ChatModel | typeof ChatBuilder.NO_MODEL
     ): void {
         const lastMessage = this.messages.at(-1)
         let error: any
         // If there is no text, it could be a placeholder message for an error
-        if (lastMessage?.speaker === 'assistant') {
+        if (lastMessage?.role === 'assistant') {
             if (lastMessage?.text) {
                 throw new Error('Cannot add a bot message after a bot message')
             }
@@ -182,7 +182,7 @@ export class ChatBuilder {
         this.messages.push({
             model: model === ChatBuilder.NO_MODEL ? undefined : model,
             ...message,
-            speaker: 'assistant',
+            role: 'assistant',
             error,
         })
         this.changeNotifications.next()
@@ -192,40 +192,40 @@ export class ChatBuilder {
         const lastMessage = this.messages.at(-1)
         // Remove the last assistant message if any
         const lastAssistantMessage: ChatMessage | undefined =
-            lastMessage?.speaker === 'assistant' ? this.messages.pop() : undefined
+            lastMessage?.role === 'assistant' ? this.messages.pop() : undefined
         // Then add a new assistant message with error added
         this.messages.push({
             model: model === ChatBuilder.NO_MODEL ? undefined : model,
             ...(lastAssistantMessage ?? {}),
-            speaker: 'assistant',
+            role: 'assistant',
             error: errorToChatError(error),
         })
         this.changeNotifications.next()
     }
 
     public getLastHumanMessage(): ChatMessage | undefined {
-        return findLast(this.messages, message => message.speaker === 'human')
+        return findLast(this.messages, message => message.role === 'human')
     }
 
-    public getLastSpeakerMessageIndex(speaker: 'human' | 'assistant'): number | undefined {
-        return this.messages.findLastIndex(message => message.speaker === speaker)
+    public getLastroleMessageIndex(role: 'human' | 'assistant'): number | undefined {
+        return this.messages.findLastIndex(message => message.role === role)
     }
 
     /**
-     * Removes all messages from the given index when it matches the expected speaker.
+     * Removes all messages from the given index when it matches the expected role.
      *
-     * expectedSpeaker must match the speaker of the message at the given index.
+     * expectedrole must match the role of the message at the given index.
      * This helps ensuring the intented messages are being removed.
      */
-    public removeMessagesFromIndex(index: number, expectedSpeaker: 'human' | 'assistant'): void {
+    public removeMessagesFromIndex(index: number, expectedrole: 'human' | 'assistant'): void {
         if (this.isEmpty()) {
             throw new Error('ChatModel.removeMessagesFromIndex: not message to remove')
         }
 
-        const speakerAtIndex = this.messages.at(index)?.speaker
-        if (speakerAtIndex !== expectedSpeaker) {
+        const roleAtIndex = this.messages.at(index)?.role
+        if (roleAtIndex !== expectedrole) {
             throw new Error(
-                `ChatModel.removeMessagesFromIndex: expected ${expectedSpeaker}, got ${speakerAtIndex}`
+                `ChatModel.removeMessagesFromIndex: expected ${expectedrole}, got ${roleAtIndex}`
             )
         }
 
@@ -308,23 +308,23 @@ function messageToSerializedChatInteraction(
     assistantMessage: ChatMessage | undefined,
     messages: ChatMessage[]
 ): SerializedChatInteraction {
-    if (humanMessage?.speaker !== 'human') {
+    if (humanMessage?.role !== 'human') {
         throw new Error(
             `expected human message, got bot. Messages: ${JSON.stringify(messages, null, 2)}`
         )
     }
 
-    if (humanMessage.speaker !== 'human') {
+    if (humanMessage.role !== 'human') {
         throw new Error(
-            `expected human message to have speaker == 'human', got ${
-                humanMessage.speaker
+            `expected human message to have role == 'human', got ${
+                humanMessage.role
             }. Messages: ${JSON.stringify(messages, null, 2)}`
         )
     }
-    if (assistantMessage && assistantMessage.speaker !== 'assistant') {
+    if (assistantMessage && assistantMessage.role !== 'assistant') {
         throw new Error(
-            `expected bot message to have speaker == 'assistant', got ${
-                assistantMessage.speaker
+            `expected bot message to have role == 'assistant', got ${
+                assistantMessage.role
             }. Messages: ${JSON.stringify(messages, null, 2)}`
         )
     }

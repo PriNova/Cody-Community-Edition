@@ -116,7 +116,7 @@ describe('ChatController', () => {
             chatID: mockNowDate.toUTCString(),
             messages: [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test input',
                     intent: undefined,
                     model: undefined,
@@ -125,7 +125,7 @@ describe('ChatController', () => {
                     contextFiles: [],
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: 'my-model',
                     intent: undefined,
                     error: undefined,
@@ -148,7 +148,7 @@ describe('ChatController', () => {
             chatID: mockNowDate.toUTCString(),
             messages: [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test input',
                     intent: undefined,
                     model: undefined,
@@ -157,7 +157,7 @@ describe('ChatController', () => {
                     contextFiles: [],
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     intent: undefined,
                     model: 'my-model',
                     error: undefined,
@@ -195,7 +195,7 @@ describe('ChatController', () => {
             chatID: mockNowDate.toUTCString(),
             messages: [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test input',
                     intent: undefined,
                     model: undefined,
@@ -204,7 +204,7 @@ describe('ChatController', () => {
                     contextFiles: [],
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: 'my-model',
                     intent: undefined,
                     error: undefined,
@@ -213,7 +213,7 @@ describe('ChatController', () => {
                     contextFiles: undefined,
                 },
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test followup',
                     intent: undefined,
                     model: undefined,
@@ -222,7 +222,7 @@ describe('ChatController', () => {
                     contextFiles: [],
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: 'my-model',
                     intent: undefined,
                     error: undefined,
@@ -259,7 +259,7 @@ describe('ChatController', () => {
             chatID: mockNowDate.toUTCString(),
             messages: [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test input',
                     intent: undefined,
                     model: undefined,
@@ -268,7 +268,7 @@ describe('ChatController', () => {
                     contextFiles: [],
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: 'my-model',
                     intent: undefined,
                     error: undefined,
@@ -277,7 +277,7 @@ describe('ChatController', () => {
                     contextFiles: undefined,
                 },
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test edit',
                     intent: undefined,
                     model: undefined,
@@ -286,7 +286,7 @@ describe('ChatController', () => {
                     contextFiles: [],
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: 'my-model',
                     intent: undefined,
                     error: undefined,
@@ -332,7 +332,7 @@ describe('ChatController', () => {
             chatID: mockNowDate.toUTCString(),
             messages: [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: 'Test input',
                     model: undefined,
                     error: undefined,
@@ -341,7 +341,7 @@ describe('ChatController', () => {
                     intent: undefined,
                 },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: undefined,
                     error: errorToChatError(new Error('my-error')),
                     intent: undefined,

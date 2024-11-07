@@ -25,7 +25,7 @@ export interface SerializedChatInteraction {
 
 export function serializeChatMessage(chatMessage: ChatMessage): SerializedChatMessage {
     return {
-        speaker: chatMessage.speaker,
+        role: chatMessage.role,
         model: chatMessage.model,
         contextFiles: chatMessage.contextFiles,
         editorState: chatMessage.editorState,

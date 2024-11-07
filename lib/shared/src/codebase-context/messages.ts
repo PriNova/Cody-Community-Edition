@@ -222,7 +222,7 @@ export interface ContextMessage extends Required<Message> {
      * LLMs that support that kind of message, but that `speaker` value is not currently supported
      * by the `Message` type.)
      */
-    speaker: 'human'
+    role: 'human'
 
     /**
      * The context item that this message introduces into the conversation.

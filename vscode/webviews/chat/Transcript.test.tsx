@@ -52,8 +52,8 @@ describe('Transcript', () => {
             <Transcript
                 {...PROPS}
                 transcript={[
-                    { speaker: 'human', text: ps`Hello` },
-                    { speaker: 'assistant', text: ps`Hi` },
+                    { role: 'human', text: ps`Hello` },
+                    { role: 'assistant', text: ps`Hi` },
                 ]}
             />
         )
@@ -80,8 +80,8 @@ describe('Transcript', () => {
             <Transcript
                 {...PROPS}
                 transcript={[
-                    { speaker: 'human', text: ps`Hello` },
-                    { speaker: 'assistant', text: ps`Hi` },
+                    { role: 'human', text: ps`Hello` },
+                    { role: 'assistant', text: ps`Hi` },
                 ]}
             />
         )
@@ -94,11 +94,11 @@ describe('Transcript', () => {
                 {...PROPS}
                 transcript={[
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: ps`Foo`,
                         contextFiles: [{ type: 'file', uri: URI.file('/foo.js') }],
                     },
-                    { speaker: 'assistant', text: ps`Bar` },
+                    { role: 'assistant', text: ps`Bar` },
                 ]}
             />
         )
@@ -110,10 +110,10 @@ describe('Transcript', () => {
             <Transcript
                 {...PROPS}
                 transcript={[
-                    { speaker: 'human', text: ps`Foo` },
-                    { speaker: 'assistant', text: ps`Bar` },
-                    { speaker: 'human', text: ps`Baz` },
-                    { speaker: 'assistant', text: ps`Qux` },
+                    { role: 'human', text: ps`Foo` },
+                    { role: 'assistant', text: ps`Bar` },
+                    { role: 'human', text: ps`Baz` },
+                    { role: 'assistant', text: ps`Qux` },
                 ]}
             />
         )
@@ -132,12 +132,12 @@ describe('Transcript', () => {
                 {...PROPS}
                 transcript={[
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: ps`Foo`,
                         contextFiles: undefined,
                     },
                 ]}
-                messageInProgress={{ speaker: 'assistant', text: undefined }}
+                messageInProgress={{ role: 'assistant', text: undefined }}
             />
         )
         expectCells([
@@ -153,12 +153,12 @@ describe('Transcript', () => {
                 {...PROPS}
                 transcript={[
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: ps`Foo`,
                         contextFiles: [{ type: 'file', uri: URI.file('/foo.js') }],
                     },
                 ]}
-                messageInProgress={{ speaker: 'assistant', text: undefined }}
+                messageInProgress={{ role: 'assistant', text: undefined }}
             />
         )
         expectCells([
@@ -175,12 +175,12 @@ describe('Transcript', () => {
                 {...PROPS}
                 transcript={[
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: ps`Foo`,
                         contextFiles: [],
                     },
                 ]}
-                messageInProgress={{ speaker: 'assistant', text: undefined }}
+                messageInProgress={{ role: 'assistant', text: undefined }}
             />
         )
         expectCells([
@@ -196,12 +196,12 @@ describe('Transcript', () => {
                 {...PROPS}
                 transcript={[
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: ps`Foo`,
                         contextFiles: [{ type: 'file', uri: URI.file('/foo.js') }],
                     },
                 ]}
-                messageInProgress={{ speaker: 'assistant', text: ps`Bar` }}
+                messageInProgress={{ role: 'assistant', text: ps`Bar` }}
             />
         )
         expectCells([
@@ -218,12 +218,12 @@ describe('Transcript', () => {
                 {...PROPS}
                 transcript={[
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: ps`Foo`,
                         contextFiles: [],
                     },
                 ]}
-                messageInProgress={{ speaker: 'assistant', text: ps`Bar` }}
+                messageInProgress={{ role: 'assistant', text: ps`Bar` }}
             />
         )
         expectCells([{ message: 'Foo' }, { message: 'Bar' }, { message: '', canSubmit: true }])
@@ -234,8 +234,8 @@ describe('Transcript', () => {
             <Transcript
                 {...PROPS}
                 transcript={[
-                    { speaker: 'human', text: ps`Foo` },
-                    { speaker: 'assistant', error: errorToChatError(new Error('some error')) },
+                    { role: 'human', text: ps`Foo` },
+                    { role: 'assistant', error: errorToChatError(new Error('some error')) },
                 ]}
             />
         )
@@ -244,8 +244,8 @@ describe('Transcript', () => {
     })
 
     test('does not clobber user input into followup while isPendingPriorResponse when it completes', async () => {
-        const humanMessage: ChatMessage = { speaker: 'human', text: ps`Foo`, contextFiles: [] }
-        const assistantMessage: ChatMessage = { speaker: 'assistant', text: ps`Bar` }
+        const humanMessage: ChatMessage = { role: 'human', text: ps`Foo`, contextFiles: [] }
+        const assistantMessage: ChatMessage = { role: 'assistant', text: ps`Bar` }
         const { container, rerender } = render(
             <Transcript {...PROPS} transcript={[humanMessage]} messageInProgress={assistantMessage} />
         )
@@ -274,8 +274,8 @@ describe('Transcript', () => {
             <Transcript
                 {...PROPS}
                 transcript={[
-                    { speaker: 'human', text: ps`Foo`, contextFiles: [] },
-                    { speaker: 'assistant', text: ps`Bar` },
+                    { role: 'human', text: ps`Foo`, contextFiles: [] },
+                    { role: 'assistant', text: ps`Bar` },
                 ]}
             />
         )
@@ -290,8 +290,8 @@ describe('Transcript', () => {
             <Transcript
                 {...PROPS}
                 transcript={[
-                    { speaker: 'human', text: ps`Foo`, contextFiles: [] },
-                    { speaker: 'assistant', text: ps`Bar` },
+                    { role: 'human', text: ps`Foo`, contextFiles: [] },
+                    { role: 'assistant', text: ps`Bar` },
                 ]}
             />
         )
@@ -364,7 +364,7 @@ describe('transcriptToInteractionPairs', () => {
     test('empty transcript', () => {
         expect(transcriptToInteractionPairs([], null)).toEqual<Interaction[]>([
             {
-                humanMessage: { index: 0, speaker: 'human', isUnsentFollowup: true },
+                humanMessage: { index: 0, role: 'human', isUnsentFollowup: true },
                 assistantMessage: null,
             },
         ])
@@ -374,24 +374,24 @@ describe('transcriptToInteractionPairs', () => {
         expect(
             transcriptToInteractionPairs(
                 [
-                    { speaker: 'human', text: ps`a` },
-                    { speaker: 'assistant', text: ps`b` },
-                    { speaker: 'human', text: ps`c` },
-                    { speaker: 'assistant', text: ps`d` },
+                    { role: 'human', text: ps`a` },
+                    { role: 'assistant', text: ps`b` },
+                    { role: 'human', text: ps`c` },
+                    { role: 'assistant', text: ps`d` },
                 ],
                 null
             )
         ).toEqual<Interaction[]>([
             {
-                humanMessage: { index: 0, speaker: 'human', text: ps`a`, isUnsentFollowup: false },
-                assistantMessage: { index: 1, speaker: 'assistant', text: ps`b`, isLoading: false },
+                humanMessage: { index: 0, role: 'human', text: ps`a`, isUnsentFollowup: false },
+                assistantMessage: { index: 1, role: 'assistant', text: ps`b`, isLoading: false },
             },
             {
-                humanMessage: { index: 2, speaker: 'human', text: ps`c`, isUnsentFollowup: false },
-                assistantMessage: { index: 3, speaker: 'assistant', text: ps`d`, isLoading: false },
+                humanMessage: { index: 2, role: 'human', text: ps`c`, isUnsentFollowup: false },
+                assistantMessage: { index: 3, role: 'assistant', text: ps`d`, isLoading: false },
             },
             {
-                humanMessage: { index: 4, speaker: 'human', isUnsentFollowup: true },
+                humanMessage: { index: 4, role: 'human', isUnsentFollowup: true },
                 assistantMessage: null,
             },
         ])
@@ -399,17 +399,17 @@ describe('transcriptToInteractionPairs', () => {
 
     test('assistant message is loading', () => {
         expect(
-            transcriptToInteractionPairs([{ speaker: 'human', text: ps`a` }], {
-                speaker: 'assistant',
+            transcriptToInteractionPairs([{ role: 'human', text: ps`a` }], {
+                role: 'assistant',
                 text: ps`b`,
             })
         ).toEqual<Interaction[]>([
             {
-                humanMessage: { index: 0, speaker: 'human', text: ps`a`, isUnsentFollowup: false },
-                assistantMessage: { index: 1, speaker: 'assistant', text: ps`b`, isLoading: true },
+                humanMessage: { index: 0, role: 'human', text: ps`a`, isUnsentFollowup: false },
+                assistantMessage: { index: 1, role: 'assistant', text: ps`b`, isLoading: true },
             },
             {
-                humanMessage: { index: 2, speaker: 'human', isUnsentFollowup: true },
+                humanMessage: { index: 2, role: 'human', isUnsentFollowup: true },
                 assistantMessage: null,
             },
         ])
@@ -418,16 +418,16 @@ describe('transcriptToInteractionPairs', () => {
     test('last assistant message is error', () => {
         const error = errorToChatError(new Error('x'))
         expect(
-            transcriptToInteractionPairs([{ speaker: 'human', text: ps`a` }], {
-                speaker: 'assistant',
+            transcriptToInteractionPairs([{ role: 'human', text: ps`a` }], {
+                role: 'assistant',
                 error,
             })
         ).toEqual<Interaction[]>([
             {
-                humanMessage: { index: 0, speaker: 'human', text: ps`a`, isUnsentFollowup: false },
+                humanMessage: { index: 0, role: 'human', text: ps`a`, isUnsentFollowup: false },
                 assistantMessage: {
                     index: 1,
-                    speaker: 'assistant',
+                    role: 'assistant',
                     error,
                     isLoading: false,
                 },

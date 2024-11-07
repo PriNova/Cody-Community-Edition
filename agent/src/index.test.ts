@@ -256,21 +256,21 @@ describe('Agent', () => {
                 interactions: [
                     {
                         humanMessage: {
-                            speaker: 'human',
+                            role: 'human',
                             text: 'Hello, Cody!',
                         },
                         assistantMessage: {
-                            speaker: 'assistant',
+                            role: 'assistant',
                             text: 'Hello! How can I assist you today?',
                         },
                     },
                     {
                         humanMessage: {
-                            speaker: 'human',
+                            role: 'human',
                             text: 'Can you help me with my code?',
                         },
                         assistantMessage: {
-                            speaker: 'assistant',
+                            role: 'assistant',
                             text: 'Of course! What do you need help with?',
                         },
                     },
@@ -283,11 +283,11 @@ describe('Agent', () => {
                 interactions: [
                     {
                         humanMessage: {
-                            speaker: 'human',
+                            role: 'human',
                             text: 'My name is Lars Monsen.',
                         },
                         assistantMessage: {
-                            speaker: 'assistant',
+                            role: 'assistant',
                             text: 'Lovely to meet you, Lars.',
                         },
                     },
@@ -301,11 +301,11 @@ describe('Agent', () => {
                 interactions: [
                     {
                         humanMessage: {
-                            speaker: 'human',
+                            role: 'human',
                             text: 'My name is Bear Grylls.',
                         },
                         assistantMessage: {
-                            speaker: 'assistant',
+                            role: 'assistant',
                             text: 'Nice to meet you, Bear.',
                         },
                     },

@@ -104,7 +104,7 @@ export class DefaultModel {
     }
 
     public getMessages(params: GetPromptParams): Message[] {
-        return [{ speaker: 'human', text: this.getPrompt(params) }]
+        return [{ role: 'human', text: this.getPrompt(params) }]
     }
 
     protected getPrompt(params: GetPromptParams): PromptString {

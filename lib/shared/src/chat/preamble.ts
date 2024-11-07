@@ -28,7 +28,7 @@ export function getSimplePreamble(
     if (apiVersion >= 1 && model?.includes('claude-3')) {
         return [
             {
-                speaker: 'system',
+                role: 'system',
                 text: intro,
             },
         ]
@@ -36,11 +36,11 @@ export function getSimplePreamble(
 
     return [
         {
-            speaker: 'human',
+            role: 'human',
             text: intro,
         },
         {
-            speaker: 'assistant',
+            role: 'assistant',
             text: ps`I am Cody, an AI coding assistant from Sourcegraph.`,
         },
     ]

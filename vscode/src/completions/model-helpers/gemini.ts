@@ -31,8 +31,8 @@ export class Gemini extends DefaultModel {
 
     public getMessages(params: GetPromptParams): Message[] {
         return [
-            { speaker: 'human', text: this.getPrompt(params) },
-            { speaker: 'assistant', text: ps`${GEMINI_MARKERS.Response}` },
+            { role: 'human', text: this.getPrompt(params) },
+            { role: 'assistant', text: ps`${GEMINI_MARKERS.Response}` },
         ]
     }
 

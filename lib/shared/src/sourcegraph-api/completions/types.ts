@@ -18,15 +18,15 @@ export type Event = DoneEvent | CompletionEvent | ErrorEvent
 
 export interface Message {
     // Note: The unified API only supports one system message passed as the first message
-    speaker: 'human' | 'assistant' | 'system'
+    role: 'human' | 'assistant' | 'system'
     text?: PromptString
-    content?: string | MessagePart[]
+    content?: string | MessageContentPart[]
     base64Image?: string
 }
 
-type MessagePart =
+type MessageContentPart =
     | { type: 'text'; text: string } // a normal text message
-    | { type: 'image_url'; image_url: { url: string } } // image message, per https://platform.openai.com/docs/guides/vision
+    | { type: 'image_url'; image_url: { url: string; detail?: 'low' | 'high' | 'auto' } } // image message, per https://platform.openai.com/docs/guides/vision
 
 export interface CompletionResponse {
     completion: string

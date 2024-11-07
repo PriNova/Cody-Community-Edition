@@ -33,8 +33,8 @@ export const SingleDay: Story = {
                 id: '1',
                 interactions: [
                     {
-                        humanMessage: { speaker: 'human', text: 'How do I use React hooks?' },
-                        assistantMessage: { speaker: 'assistant', text: 'Hello' },
+                        humanMessage: { role: 'human', text: 'How do I use React hooks?' },
+                        assistantMessage: { role: 'assistant', text: 'Hello' },
                     },
                 ],
                 lastInteractionTimestamp: new Date().toISOString(),
@@ -50,8 +50,8 @@ export const MultiDay: Story = {
                 id: '1',
                 interactions: [
                     {
-                        humanMessage: { speaker: 'human', text: 'How do I use React hooks?' },
-                        assistantMessage: { speaker: 'assistant', text: 'Hello' },
+                        humanMessage: { role: 'human', text: 'How do I use React hooks?' },
+                        assistantMessage: { role: 'assistant', text: 'Hello' },
                     },
                 ],
                 lastInteractionTimestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
@@ -60,8 +60,8 @@ export const MultiDay: Story = {
                 id: '2',
                 interactions: [
                     {
-                        humanMessage: { speaker: 'human', text: 'Explain TypeScript interfaces' },
-                        assistantMessage: { speaker: 'assistant', text: 'Hello' },
+                        humanMessage: { role: 'human', text: 'Explain TypeScript interfaces' },
+                        assistantMessage: { role: 'assistant', text: 'Hello' },
                     },
                 ],
                 lastInteractionTimestamp: new Date().toISOString(),

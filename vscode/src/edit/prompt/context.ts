@@ -64,7 +64,7 @@ const getContextFromIntent = async ({
         case 'add': {
             return [
                 {
-                    speaker: 'human',
+                    role: 'human',
                     text: populateCodeGenerationContextTemplate(
                         ps`<${PROMPT_TOPICS.PRECEDING}>${truncatedPrecedingText}</${PROMPT_TOPICS.PRECEDING}>`,
                         ps`<${PROMPT_TOPICS.FOLLOWING}>${truncatedFollowingText}</${PROMPT_TOPICS.FOLLOWING}>`,
@@ -95,7 +95,7 @@ const getContextFromIntent = async ({
             const contextMessages: ContextMessage[] = []
             if (truncatedPrecedingText.trim().length > 0) {
                 contextMessages.push({
-                    speaker: 'human',
+                    role: 'human',
                     text: populateCodeContextTemplate(truncatedPrecedingText, uri, undefined, 'edit'),
                     file: { type: 'file', uri, source: ContextItemSource.Editor, range: prefix.range },
                     content: '',
@@ -104,7 +104,7 @@ const getContextFromIntent = async ({
             }
             if (truncatedFollowingText.trim().length > 0) {
                 contextMessages.push({
-                    speaker: 'human',
+                    role: 'human',
                     text: populateCodeContextTemplate(truncatedFollowingText, uri, undefined, 'edit'),
                     file: { type: 'file', uri, source: ContextItemSource.Editor, range: suffix.range },
                     content: '',
@@ -128,7 +128,7 @@ const getContextFromIntent = async ({
                 ...errorsAndWarnings.flatMap(
                     diagnostic =>
                         ({
-                            speaker: 'human' as const,
+                            role: 'human' as const,
                             text: populateCurrentEditorDiagnosticsTemplate(diagnostic, uri),
                             file: { type: 'file', uri, source: ContextItemSource.Editor },
                             content: '',
@@ -140,7 +140,7 @@ const getContextFromIntent = async ({
                     .flatMap(
                         text =>
                             ({
-                                speaker: 'human' as const,
+                                role: 'human' as const,
                                 text: populateCodeContextTemplate(text, uri, undefined, 'edit'),
                                 file: { type: 'file', uri, source: ContextItemSource.Editor },
                                 content: '',

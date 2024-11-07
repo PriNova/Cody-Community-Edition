@@ -224,7 +224,7 @@ export class CodySourceControl implements vscode.Disposable {
             ? COMMIT_COMMAND_PROMPTS.template
             : COMMIT_COMMAND_PROMPTS.noTemplate
         const text = COMMIT_COMMAND_PROMPTS.instruction.replace('{COMMIT_TEMPLATE}', templatePrompt)
-        const transcript: ChatMessage[] = [{ speaker: 'human', text }]
+        const transcript: ChatMessage[] = [{ role: 'human', text }]
 
         const promptBuilder = await PromptBuilder.create(contextWindow)
         promptBuilder.tryAddToPrefix(preamble)

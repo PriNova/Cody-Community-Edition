@@ -48,7 +48,7 @@ export interface SerializedChatMessage {
     contextFiles?: ContextItem[]
     error?: ChatError
     editorState?: unknown
-    speaker: 'human' | 'assistant' | 'system'
+    role: 'human' | 'assistant' | 'system'
     text?: string // Changed from PromptString
     model?: string
     intent?: ChatMessage['intent']

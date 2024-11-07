@@ -38,7 +38,7 @@ export async function ollamaChatClient({
     try {
         const messages = await Promise.all(
             params.messages.map(async msg => ({
-                role: msg.speaker === 'human' ? 'user' : 'assistant',
+                role: msg.role === 'human' ? 'user' : 'assistant',
                 content: (await msg.text?.toFilteredString(contextFiltersProvider)) ?? '',
             }))
         )

@@ -27,10 +27,10 @@ export class LlmJudge {
             {
                 messages: [
                     {
-                        speaker: 'human',
+                        role: 'human',
                         text: prompt,
                     },
-                    { speaker: 'assistant' },
+                    { role: 'assistant' },
                 ],
                 maxTokensToSample: 400,
                 temperature: 0,

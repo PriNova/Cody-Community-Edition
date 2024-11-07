@@ -21,7 +21,7 @@ async function serializePrompts(
     modelID?: string
 ): Promise<SerializedChatMessage[]> {
     // NOTE: Some models do not support empty assistant message at the end.
-    if (modelID?.startsWith('google/') && messages.at(-1)?.speaker === 'assistant') {
+    if (modelID?.startsWith('google/') && messages.at(-1)?.role === 'assistant') {
         messages.pop()
     }
 

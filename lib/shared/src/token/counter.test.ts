@@ -9,8 +9,8 @@ import {
 import { TokenCounter, TokenCounterUtils } from './counter'
 
 const preamble: Message[] = [
-    { speaker: 'human', text: ps`Preamble` },
-    { speaker: 'assistant', text: ps`OK` },
+    { role: 'human', text: ps`Preamble` },
+    { role: 'assistant', text: ps`OK` },
 ] // uses 3 tokens
 
 describe('TokenCounter class', () => {
@@ -42,7 +42,7 @@ describe('TokenCounter class', () => {
 
     it('should throw error when adding input without preamble', async () => {
         const counter = await TokenCounter.create({ input: CHAT_INPUT_TOKEN_BUDGET, output: 0 })
-        expect(() => counter.updateUsage('input', [{ speaker: 'human', text: ps`Hello` }])).toThrowError(
+        expect(() => counter.updateUsage('input', [{ role: 'human', text: ps`Hello` }])).toThrowError(
             'Preamble must be updated before Chat input.'
         )
     })
@@ -52,8 +52,8 @@ describe('TokenCounter class', () => {
         expect(counter.updateUsage('preamble', preamble)).toEqual({ succeeded: true }) // 3 chat tokens needed
         const messages: Message[] = [
             // 4 chat tokens needed
-            { speaker: 'human', text: ps`Hello` },
-            { speaker: 'assistant', text: ps`Hi there!` },
+            { role: 'human', text: ps`Hello` },
+            { role: 'assistant', text: ps`Hi there!` },
         ]
         expect(CHAT_INPUT_TOKEN_BUDGET).toBeGreaterThan(3 + 4)
         // 3 + 4 chat tokens needed = within limit of CHAT_INPUT_TOKEN_BUDGET
@@ -70,12 +70,12 @@ describe('TokenCounter class', () => {
         expect(
             counter.updateUsage('input', [
                 // 4 chat tokens needed
-                { speaker: 'human', text: ps`Hello` },
-                { speaker: 'assistant', text: ps`Hi there!` },
+                { role: 'human', text: ps`Hello` },
+                { role: 'assistant', text: ps`Hi there!` },
             ])
         ).toEqual({ succeeded: true })
         expect(
-            counter.updateUsage('user', [{ speaker: 'system', text: ps`You are a helpful assistant.` }])
+            counter.updateUsage('user', [{ role: 'system', text: ps`You are a helpful assistant.` }])
         ).toEqual({ succeeded: true })
     })
 
@@ -84,8 +84,8 @@ describe('TokenCounter class', () => {
         expect(counter.updateUsage('preamble', preamble)).toEqual({ succeeded: true }) // 3 chat tokens needed
         const messages: Message[] = [
             // 4 chat tokens needed
-            { speaker: 'human', text: ps`Hello` },
-            { speaker: 'assistant', text: ps`Hi there!` },
+            { role: 'human', text: ps`Hello` },
+            { role: 'assistant', text: ps`Hi there!` },
         ]
         // 3 + 4 chat tokens needed -> exceeds the limit of 5
         expect(counter.updateUsage('input', messages)).toEqual({
@@ -99,8 +99,8 @@ describe('TokenCounter class', () => {
         expect(counter.updateUsage('preamble', preamble)).toEqual({ succeeded: true }) // 3 chat tokens used
         const messages: Message[] = [
             // 4 chat tokens needed
-            { speaker: 'human', text: ps`Hello` },
-            { speaker: 'assistant', text: ps`Hi there!` },
+            { role: 'human', text: ps`Hello` },
+            { role: 'assistant', text: ps`Hi there!` },
         ]
         // 3 + 4 chat tokens needed = within limit of 7
         expect(counter.updateUsage('input', messages)).toEqual({ succeeded: true })
@@ -111,15 +111,15 @@ describe('TokenCounter class', () => {
         expect(counter.updateUsage('preamble', preamble)).toEqual({ succeeded: true })
         expect(() => {
             counter.updateUsage('corpus', [
-                { speaker: 'human', text: ps`Hi` },
-                { speaker: 'assistant', text: ps`ok` },
+                { role: 'human', text: ps`Hi` },
+                { role: 'assistant', text: ps`ok` },
             ])
         }).toThrowError('Chat token usage must be updated before Context.')
 
         expect(() => {
             counter.updateUsage('user', [
-                { speaker: 'human', text: ps`Hi` },
-                { speaker: 'assistant', text: ps`ok` },
+                { role: 'human', text: ps`Hi` },
+                { role: 'assistant', text: ps`ok` },
             ])
         }).toThrowError('Chat token usage must be updated before Context.')
     })
@@ -131,18 +131,18 @@ describe('TokenCounter class', () => {
         // Remaining tokens: 30 - 3 = 27
 
         const chatInputMessages = [
-            { speaker: 'human', text: ps`Hello` },
-            { speaker: 'assistant', text: ps`Hi there!` },
+            { role: 'human', text: ps`Hello` },
+            { role: 'assistant', text: ps`Hi there!` },
         ] as Message[]
         expect(counter.utils.getMessagesTokenCount(chatInputMessages)).toBe(4)
         expect(counter.updateUsage('input', chatInputMessages)).toEqual({ succeeded: true })
         // Remaining tokens: 30 - 3 - 4 = 23
 
         const userContextMessages = [
-            { speaker: 'human', text: ps`Here is my selected code...` },
-            { speaker: 'assistant', text: ps`ok` },
-            { speaker: 'human', text: ps`Here is my selected code...` },
-            { speaker: 'assistant', text: ps`ok` },
+            { role: 'human', text: ps`Here is my selected code...` },
+            { role: 'assistant', text: ps`ok` },
+            { role: 'human', text: ps`Here is my selected code...` },
+            { role: 'assistant', text: ps`ok` },
         ] as Message[]
         expect(counter.utils.getMessagesTokenCount(userContextMessages)).toBe(14)
         expect(counter.updateUsage('user', userContextMessages)).toEqual({ succeeded: true })
@@ -151,8 +151,8 @@ describe('TokenCounter class', () => {
         // Enhanced Token Budget: 9 * 0.6 = Round down to 5
         // - the remaining chat token budget * CORPUS_CONTEXT_ALLOCATION
         const corpusContextMessages = [
-            { speaker: 'human', text: ps`Here is my corpus context...` },
-            { speaker: 'assistant', text: ps`ok` },
+            { role: 'human', text: ps`Here is my corpus context...` },
+            { role: 'assistant', text: ps`ok` },
         ] as Message[]
         expect(counter.utils.getMessagesTokenCount(corpusContextMessages)).toBe(7)
         expect(counter.updateUsage('corpus', corpusContextMessages)).toEqual({
@@ -162,8 +162,8 @@ describe('TokenCounter class', () => {
         // FAILED: 7 tokens needed, exceeds the remaining token budget of 5 for corpus context
 
         const fiveTokensMessages = [
-            { speaker: 'human', text: ps`Need 5 tokens` },
-            { speaker: 'assistant', text: ps`ok` },
+            { role: 'human', text: ps`Need 5 tokens` },
+            { role: 'assistant', text: ps`ok` },
         ] as Message[]
         expect(counter.utils.getMessagesTokenCount(fiveTokensMessages)).toBe(5)
         expect(counter.updateUsage('corpus', fiveTokensMessages)).toEqual({ succeeded: true })
@@ -176,8 +176,8 @@ describe('TokenCounter class', () => {
         // ADDED: Remaining input tokens: 20 - 3 = 17 & Remaining user tokens: 20
 
         const greetings = [
-            { speaker: 'human', text: ps`Hello` },
-            { speaker: 'assistant', text: ps`Hi there!` },
+            { role: 'human', text: ps`Hello` },
+            { role: 'assistant', text: ps`Hi there!` },
         ] as Message[] // 4 tokens needed
         expect(counter.utils.getMessagesTokenCount(greetings)).toBe(4)
         expect(counter.updateUsage('input', greetings)).toEqual({ succeeded: true })
@@ -185,17 +185,17 @@ describe('TokenCounter class', () => {
 
         expect(
             counter.updateUsage('user', [
-                { speaker: 'human', text: ps`Here is my selected code...` },
-                { speaker: 'assistant', text: ps`ok` },
-                { speaker: 'human', text: ps`Here is my selected code...` },
-                { speaker: 'assistant', text: ps`ok` },
+                { role: 'human', text: ps`Here is my selected code...` },
+                { role: 'assistant', text: ps`ok` },
+                { role: 'human', text: ps`Here is my selected code...` },
+                { role: 'assistant', text: ps`ok` },
             ])
         ).toEqual({ succeeded: true })
         // ADDED: Remaining input tokens: 13 & Remaining user tokens: 20 - 14 = 6
 
         const shortMessages = [
-            { speaker: 'human', text: ps`Hi` },
-            { speaker: 'assistant', text: ps`ok` },
+            { role: 'human', text: ps`Hi` },
+            { role: 'assistant', text: ps`ok` },
         ] as Message[]
         expect(counter.utils.getMessagesTokenCount(shortMessages)).toBe(2)
         expect(counter.updateUsage('corpus', shortMessages)).toEqual({ succeeded: true })
@@ -205,8 +205,8 @@ describe('TokenCounter class', () => {
         // ADDED: Remaining input tokens: 11 - 4 = 7 &  Remaining user tokens: 6
 
         const longMessages = [
-            { speaker: 'human', text: ps`This is a very long corpus context with code` },
-            { speaker: 'assistant', text: ps`limit exceeded` },
+            { role: 'human', text: ps`This is a very long corpus context with code` },
+            { role: 'assistant', text: ps`limit exceeded` },
         ] as Message[]
         // 11 exceeds the limit of the Enhanced Token Budget (7 * 0.6 = Round down to 4)
         expect(counter.utils.getMessagesTokenCount(longMessages)).toBe(11)
@@ -297,7 +297,7 @@ describe('TokenCounter static', () => {
         it('should count the tokens in a message', async () => {
             const message: Message = {
                 text: ps`This is a sample message.`,
-                speaker: 'human',
+                role: 'human',
             }
             const tokenCount = await TokenCounterUtils.getMessagesTokenCount([message])
             expect(tokenCount).toBe(6)
@@ -305,9 +305,9 @@ describe('TokenCounter static', () => {
 
         it('should calculate the total token count for an array of messages', async () => {
             const messages: Message[] = [
-                { text: ps`Hello`, speaker: 'human' },
-                { text: ps`How are you?`, speaker: 'assistant' },
-                { text: ps`I am doing well, thank you.`, speaker: 'human' },
+                { text: ps`Hello`, role: 'human' },
+                { text: ps`How are you?`, role: 'assistant' },
+                { text: ps`I am doing well, thank you.`, role: 'human' },
             ]
             const tokenCount = await TokenCounterUtils.getMessagesTokenCount(messages)
             expect(tokenCount).toBe(13)

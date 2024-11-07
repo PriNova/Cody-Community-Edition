@@ -1132,7 +1132,7 @@ export class ChatController implements vscode.Disposable, vscode.WebviewViewProv
         })
 
         try {
-            const humanMessage = index ?? this.chatBuilder.getLastSpeakerMessageIndex('human')
+            const humanMessage = index ?? this.chatBuilder.getLastroleMessageIndex('human')
             if (humanMessage === undefined) {
                 return
             }
@@ -1266,7 +1266,7 @@ export class ChatController implements vscode.Disposable, vscode.WebviewViewProv
     // =======================================================================
 
     private postEmptyMessageInProgress(model: ChatModel): void {
-        this.postViewTranscript({ speaker: 'assistant', model })
+        this.postViewTranscript({ role: 'assistant', model })
     }
 
     private postViewTranscript(messageInProgress?: ChatMessage): void {
@@ -1380,7 +1380,7 @@ export class ChatController implements vscode.Disposable, vscode.WebviewViewProv
                     measureFirstToken()
                     span.addEvent('update')
                     this.postViewTranscript({
-                        speaker: 'assistant',
+                        role: 'assistant',
                         text: PromptString.unsafe_fromLLMResponse(content),
                         model,
                     })

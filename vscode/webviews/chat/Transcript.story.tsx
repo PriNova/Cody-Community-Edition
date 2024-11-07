@@ -101,8 +101,8 @@ const SIMPLE_TRANSCRIPT = FIXTURE_TRANSCRIPT.simple
 
 export const WaitingForContext: StoryObj<typeof meta> = {
     args: {
-        transcript: [...SIMPLE_TRANSCRIPT, { speaker: 'human', text: ps`What color is the sky?` }],
-        messageInProgress: { speaker: 'assistant', model: 'my-llm' },
+        transcript: [...SIMPLE_TRANSCRIPT, { role: 'human', text: ps`What color is the sky?` }],
+        messageInProgress: { role: 'assistant', model: 'my-llm' },
     },
 }
 
@@ -111,12 +111,12 @@ export const WaitingForAssistantMessageWithContext: StoryObj<typeof meta> = {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`What color is the sky?'`,
                 contextFiles: [{ type: 'file', uri: URI.file('/foo.js') }],
             },
         ]),
-        messageInProgress: { speaker: 'assistant', model: 'my-llm' },
+        messageInProgress: { role: 'assistant', model: 'my-llm' },
     },
 }
 
@@ -125,12 +125,12 @@ export const WaitingForAssistantMessageNoContext: StoryObj<typeof meta> = {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`What color is the sky?'`,
                 contextFiles: [],
             },
         ]),
-        messageInProgress: { speaker: 'assistant', model: 'my-llm' },
+        messageInProgress: { role: 'assistant', model: 'my-llm' },
     },
 }
 
@@ -139,13 +139,13 @@ export const AssistantMessageInProgress: StoryObj<typeof meta> = {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`What color is the sky?'`,
                 contextFiles: [{ type: 'file', uri: URI.file('/foo.js') }],
             },
         ]),
         messageInProgress: {
-            speaker: 'assistant',
+            role: 'assistant',
             model: 'my-model',
             text: ps`The sky is `,
         },
@@ -156,8 +156,8 @@ export const WithError: StoryObj<typeof meta> = {
     args: {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
-            { speaker: 'human', text: ps`What color is the sky?'`, contextFiles: [] },
-            { speaker: 'assistant', error: errorToChatError(new Error('some error')) },
+            { role: 'human', text: ps`What color is the sky?'`, contextFiles: [] },
+            { role: 'assistant', error: errorToChatError(new Error('some error')) },
         ]),
     },
 }
@@ -166,9 +166,9 @@ export const WithRateLimitError: StoryObj<typeof meta> = {
     args: {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
-            { speaker: 'human', text: ps`What color is the sky?'`, contextFiles: [] },
+            { role: 'human', text: ps`What color is the sky?'`, contextFiles: [] },
             {
-                speaker: 'assistant',
+                role: 'assistant',
                 error: errorToChatError(
                     new RateLimitError('chat messages and commands', 'rate limit error', true)
                 ),
@@ -181,8 +181,8 @@ export const abortedBeforeResponse: StoryObj<typeof meta> = {
     args: {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
-            { speaker: 'human', text: ps`What color is the sky?'`, contextFiles: [] },
-            { speaker: 'assistant', error: errorToChatError(new Error('aborted')) },
+            { role: 'human', text: ps`What color is the sky?'`, contextFiles: [] },
+            { role: 'assistant', error: errorToChatError(new Error('aborted')) },
         ]),
     },
 }
@@ -192,11 +192,11 @@ export const abortedWithPartialResponse: StoryObj<typeof meta> = {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`What color is the sky?`,
                 contextFiles: [{ type: 'file', uri: URI.file('/foo.js') }],
             },
-            { speaker: 'assistant', text: ps`Bl`, error: errorToChatError(new Error('aborted')) },
+            { role: 'assistant', text: ps`Bl`, error: errorToChatError(new Error('aborted')) },
         ]),
     },
 }
@@ -206,12 +206,12 @@ export const TextWrapping: StoryObj<typeof meta> = {
         transcript: transcriptFixture([
             ...SIMPLE_TRANSCRIPT,
             {
-                speaker: 'human',
+                role: 'human',
                 text: ps`What color is the skyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskyskysky?`,
                 contextFiles: [],
             },
             {
-                speaker: 'assistant',
+                role: 'assistant',
                 text: ps`The sky is blueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblue.\n\n\`\`\`\nconst color = 'blueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblue'\n\`\`\`\n\nMore info:\n\n- Color of sky: blueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblueblue`,
             },
         ]),
@@ -254,10 +254,10 @@ export const Streaming: StoryObj<typeof meta> = {
             <Transcript
                 {...args}
                 transcript={transcriptFixture([
-                    { speaker: 'human', text: ps`Hello, world!`, contextFiles: [] },
+                    { role: 'human', text: ps`Hello, world!`, contextFiles: [] },
                 ])}
                 messageInProgress={{
-                    speaker: 'assistant',
+                    role: 'assistant',
                     model: 'my-model',
                     text: PromptString.unsafe_fromLLMResponse(`${reply}`),
                 }}
@@ -308,16 +308,16 @@ export const StreamingThenFinish: StoryObj<typeof meta> = {
                 <Transcript
                     {...args}
                     transcript={transcriptFixture([
-                        { speaker: 'human', text: ps`Hello, world!`, contextFiles: [] },
+                        { role: 'human', text: ps`Hello, world!`, contextFiles: [] },
                         ...(finished
-                            ? [{ speaker: 'assistant', text: ASSISTANT_MESSAGE } satisfies ChatMessage]
+                            ? [{ role: 'assistant', text: ASSISTANT_MESSAGE } satisfies ChatMessage]
                             : []),
                     ])}
                     messageInProgress={
                         finished
                             ? null
                             : {
-                                  speaker: 'assistant',
+                                  role: 'assistant',
                                   model: 'my-model',
                                   text: PromptString.unsafe_fromLLMResponse(`${reply}`),
                               }

@@ -94,8 +94,8 @@ const getPrompt = async (
         .replaceAll('{fileContents}', documentText)
         .replaceAll('{filePath}', PromptString.fromDisplayPath(document.uri))
 
-    const transcript: ChatMessage[] = [{ speaker: 'human', text }]
-    transcript.push({ speaker: 'assistant', text: LLM_PARAMETERS.assistantPrefix })
+    const transcript: ChatMessage[] = [{ role: 'human', text }]
+    transcript.push({ role: 'assistant', text: LLM_PARAMETERS.assistantPrefix })
 
     promptBuilder.tryAddMessages(transcript.reverse())
 

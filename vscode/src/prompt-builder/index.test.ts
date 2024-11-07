@@ -16,7 +16,7 @@ describe('PromptBuilder', () => {
         vi.spyOn(contextFiltersProvider, 'isUriIgnored').mockResolvedValue(false)
     })
 
-    const preamble: Message[] = [{ speaker: 'system', text: ps`preamble` }]
+    const preamble: Message[] = [{ role: 'system', text: ps`preamble` }]
 
     it('throws an error when trying to add corpus context before chat input', async () => {
         const builder = await PromptBuilder.create({ input: 100, output: 100 })
@@ -45,7 +45,7 @@ describe('PromptBuilder', () => {
     describe('tryAddToPrefix', async () => {
         it('should add messages to prefix if within token limit', async () => {
             const builder = await PromptBuilder.create({ input: 20, output: 100 })
-            const preambleTranscript: ChatMessage[] = [{ speaker: 'human', text: ps`Hi!` }]
+            const preambleTranscript: ChatMessage[] = [{ role: 'human', text: ps`Hi!` }]
 
             expect(builder.tryAddToPrefix(preambleTranscript)).toBe(true)
             expect(builder.build()).toEqual(preambleTranscript)
@@ -54,7 +54,7 @@ describe('PromptBuilder', () => {
 
         it('should not add messages to prefix if not within token limit', async () => {
             const builder = await PromptBuilder.create({ input: 1, output: 100 })
-            const preambleTranscript: ChatMessage[] = [{ speaker: 'human', text: ps`Hi!` }]
+            const preambleTranscript: ChatMessage[] = [{ role: 'human', text: ps`Hi!` }]
 
             expect(builder.tryAddToPrefix(preambleTranscript)).toBe(false)
             expect(builder.build()).toEqual([])
@@ -64,24 +64,24 @@ describe('PromptBuilder', () => {
     describe('tryAddMessages', async () => {
         it('throws error when tryAddMessages before tryAddPrefix', async () => {
             const builder = await PromptBuilder.create({ input: 100, output: 100 })
-            const transcript: ChatMessage[] = [{ speaker: 'human', text: ps`Hi!` }]
+            const transcript: ChatMessage[] = [{ role: 'human', text: ps`Hi!` }]
             expect(() => builder.tryAddMessages(transcript.reverse())).toThrowError()
         })
 
         it('adds single valid transcript', async () => {
             const builder = await PromptBuilder.create({ input: 100, output: 100 })
-            const transcript: ChatMessage[] = [{ speaker: 'human', text: ps`Hi!` }]
+            const transcript: ChatMessage[] = [{ role: 'human', text: ps`Hi!` }]
             builder.tryAddToPrefix(preamble)
             builder.tryAddMessages(transcript.reverse())
             const messages = builder.build()
             expect(messages.length).toBe(2)
-            expect(messages[0].speaker).toBe('system')
-            expect(messages[1].speaker).toBe('human')
+            expect(messages[0].role).toBe('system')
+            expect(messages[1].role).toBe('human')
         })
 
         it('throw on transcript starts with assistant', async () => {
             const builder = await PromptBuilder.create({ input: 100, output: 100 })
-            const transcript: ChatMessage[] = [{ speaker: 'assistant', text: ps`Hi!` }]
+            const transcript: ChatMessage[] = [{ role: 'assistant', text: ps`Hi!` }]
             builder.tryAddToPrefix(preamble)
             expect(() => {
                 builder.tryAddMessages(transcript)
@@ -91,29 +91,29 @@ describe('PromptBuilder', () => {
         it('adds valid transcript in reverse order', async () => {
             const builder = await PromptBuilder.create({ input: 1000, output: 100 })
             const transcript: ChatMessage[] = [
-                { speaker: 'human', text: ps`Hi assistant!` },
-                { speaker: 'assistant', text: ps`Hello there!` },
-                { speaker: 'human', text: ps`Hi again!` },
-                { speaker: 'assistant', text: ps`Hello there again!` },
+                { role: 'human', text: ps`Hi assistant!` },
+                { role: 'assistant', text: ps`Hello there!` },
+                { role: 'human', text: ps`Hi again!` },
+                { role: 'assistant', text: ps`Hello there again!` },
             ]
             builder.tryAddToPrefix(preamble)
             builder.tryAddMessages(transcript.reverse())
             const messages = builder.build()
             expect(messages.length).toBe(5)
-            expect(messages[0].speaker).toBe('system')
-            expect(messages[1].speaker).toBe('human')
-            expect(messages[1].speaker === messages[3].speaker).toBeTruthy()
-            expect(messages[2].speaker).toBe('assistant')
-            expect(messages[2].speaker === messages[4].speaker).toBeTruthy()
+            expect(messages[0].role).toBe('system')
+            expect(messages[1].role).toBe('human')
+            expect(messages[1].role === messages[3].role).toBeTruthy()
+            expect(messages[2].role).toBe('assistant')
+            expect(messages[2].role === messages[4].role).toBeTruthy()
         })
 
         it('throws on consecutive speakers order', async () => {
             const builder = await PromptBuilder.create({ input: 1000, output: 100 })
             const invalidTranscript: ChatMessage[] = [
-                { speaker: 'human', text: ps`Hi there!` },
-                { speaker: 'human', text: ps`Hello there!` },
-                { speaker: 'assistant', text: ps`How are you?` },
-                { speaker: 'assistant', text: ps`Hello there!` },
+                { role: 'human', text: ps`Hi there!` },
+                { role: 'human', text: ps`Hello there!` },
+                { role: 'assistant', text: ps`How are you?` },
+                { role: 'assistant', text: ps`Hello there!` },
             ]
             builder.tryAddToPrefix(preamble)
             expect(() => {
@@ -124,10 +124,10 @@ describe('PromptBuilder', () => {
         it('throws on transcript with human speakers only', async () => {
             const builder = await PromptBuilder.create({ input: 1000, output: 100 })
             const invalidTranscript: ChatMessage[] = [
-                { speaker: 'human', text: ps`1` },
-                { speaker: 'human', text: ps`2` },
-                { speaker: 'human', text: ps`3` },
-                { speaker: 'human', text: ps`4` },
+                { role: 'human', text: ps`1` },
+                { role: 'human', text: ps`2` },
+                { role: 'human', text: ps`3` },
+                { role: 'human', text: ps`4` },
             ]
             builder.tryAddToPrefix(preamble)
             expect(() => {
@@ -139,15 +139,15 @@ describe('PromptBuilder', () => {
             const builder = await PromptBuilder.create({ input: 20, output: 100 })
             builder.tryAddToPrefix(preamble)
             const longTranscript: ChatMessage[] = [
-                { speaker: 'human', text: ps`Hi assistant!` },
-                { speaker: 'assistant', text: ps`Hello there!` },
-                { speaker: 'human', text: ps`Hi again!` },
+                { role: 'human', text: ps`Hi assistant!` },
+                { role: 'assistant', text: ps`Hello there!` },
+                { role: 'human', text: ps`Hi again!` },
                 {
-                    speaker: 'assistant',
+                    role: 'assistant',
                     text: ps`This is a very long message that should exceed the character limit`,
                 },
                 // Only this message should be added
-                { speaker: 'human', text: ps`Only this message should be added as messages.` },
+                { role: 'human', text: ps`Only this message should be added as messages.` },
             ]
             const numberOfMessagesIgnored = builder.tryAddMessages(longTranscript.reverse())
             expect(numberOfMessagesIgnored).toBe(4)
@@ -158,8 +158,8 @@ describe('PromptBuilder', () => {
 
     describe('tryAddContext', async () => {
         const chatTranscript: Message[] = [
-            { speaker: 'human', text: ps`Hi!` },
-            { speaker: 'assistant', text: ps`Hi!` },
+            { role: 'human', text: ps`Hi!` },
+            { role: 'assistant', text: ps`Hi!` },
         ]
 
         const fileWithSameUri: ContextItem = {

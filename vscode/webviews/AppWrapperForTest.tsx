@@ -118,8 +118,8 @@ export const AppWrapperForTest: FunctionComponent<{ children: ReactNode }> = ({ 
                                     lastInteractionTimestamp: '2024-03-29',
                                     interactions: [
                                         {
-                                            humanMessage: { speaker: 'human', text: 'Hello, world!' },
-                                            assistantMessage: { speaker: 'assistant', text: 'Hi!' },
+                                            humanMessage: { role: 'human', text: 'Hello, world!' },
+                                            assistantMessage: { role: 'assistant', text: 'Hi!' },
                                         },
                                     ],
                                 },

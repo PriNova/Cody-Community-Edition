@@ -171,7 +171,7 @@ export function transcriptToInteractionPairs(
 
     for (let i = 0; i < transcriptLength; i += 2) {
         const humanMessage = transcript[i]
-        if (humanMessage.speaker !== 'human') continue
+        if (humanMessage.role !== 'human') continue
 
         const isLastPair = i === transcriptLength - 1
         const assistantMessage = isLastPair ? assistantMessageInProgress : transcript[i + 1]
@@ -202,7 +202,7 @@ export function transcriptToInteractionPairs(
         pairs.push({
             humanMessage: {
                 index: pairs.length * 2,
-                speaker: 'human',
+                role: 'human',
                 isUnsentFollowup: true,
             },
             assistantMessage: null,

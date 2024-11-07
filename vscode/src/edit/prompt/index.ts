@@ -117,10 +117,10 @@ export const buildInteraction = async ({
         preInstruction && preInstruction.length > 0 ? ps`\nIMPORTANT: ${preInstruction.trim()}` : ps``
 
     const transcript: ChatMessage[] = [
-        { speaker: 'human', text: prompt.instruction.concat(additionalRule) },
+        { role: 'human', text: prompt.instruction.concat(additionalRule) },
     ]
     if (assistantText) {
-        transcript.push({ speaker: 'assistant', text: assistantText })
+        transcript.push({ role: 'assistant', text: assistantText })
     }
     promptBuilder.tryAddMessages(transcript.reverse())
 

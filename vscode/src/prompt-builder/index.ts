@@ -18,7 +18,7 @@ interface PromptBuilderContextResult {
     added: ContextItem[]
 }
 
-const ASSISTANT_MESSAGE = { speaker: 'assistant', text: ps`Ok.` } as Message
+const ASSISTANT_MESSAGE = { role: 'assistant', text: ps`Ok.` } as Message
 /**
  * PromptBuilder constructs a full prompt given a charLimit constraint.
  * The final prompt is constructed by concatenating the following fields:
@@ -56,13 +56,13 @@ export class PromptBuilder {
     private buildImageMessages(): void {
         for (const image of this.images) {
             const imageMessage: Message = {
-                speaker: 'human',
+                role: 'human',
                 content: [
                     {
                         type: 'image_url',
                         image_url: {
                             // TODO: Handle PNG/JPEG, don't hardcode to JPEG
-                            url: `data:image/jpeg;base64,${image}`,
+                            url: image,
                         },
                     },
                 ],
@@ -99,11 +99,11 @@ export class PromptBuilder {
     public tryAddMessages(reverseTranscript: ChatMessage[]): number | undefined {
         // All Human message is expected to be followed by response from Assistant,
         // except for the Human message at the last index that Assistant hasn't responded yet.
-        const lastHumanMsgIndex = reverseTranscript.findIndex(msg => msg.speaker === 'human')
+        const lastHumanMsgIndex = reverseTranscript.findIndex(msg => msg.role === 'human')
         for (let i = lastHumanMsgIndex; i < reverseTranscript.length; i += 2) {
             const humanMsg = reverseTranscript[i]
             const assistantMsg = reverseTranscript[i - 1]
-            if (humanMsg?.speaker !== 'human' || humanMsg?.speaker === assistantMsg?.speaker) {
+            if (humanMsg?.role !== 'human' || humanMsg?.role === assistantMsg?.role) {
                 throw new Error(`Invalid transcript order: expected human message at index ${i}`)
             }
             const { succeeded: withinLimit } = this.tokenCounter.updateUsage('input', [
