@@ -171,7 +171,10 @@ class SearchTool extends CodyTool {
         }
         // Get the latest corpus context items
         const corpusItems = await firstValueFrom(getCorpusContextItemsForEditorState())
-        if (corpusItems === pendingOperation || corpusItems.length === 0) {
+        if (typeof corpusItems === 'symbol' && corpusItems === pendingOperation) {
+            return []
+        }
+        if (corpusItems.length === 0) {
             return []
         }
         // Find the first item that represents a repository

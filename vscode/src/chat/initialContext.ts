@@ -1,89 +1,135 @@
 import {
-    type AuthStatus,
+    type AuthenticatedAuthStatus,
     type ContextItem,
-    ContextItemSource,
-    type ContextItemTree,
     type DefaultContext,
     FeatureFlag,
+    type ContextItemOpenCtx,
+    type ContextItemRepository,
     REMOTE_REPOSITORY_PROVIDER_URI,
-    abortableOperation,
     authStatus,
-    clientCapabilities,
-    combineLatest,
-    contextFiltersProvider,
-    debounceTime,
-    displayLineRange,
-    displayPathBasename,
     distinctUntilChanged,
-    expandToLineRange,
     featureFlagProvider,
     fromVSCodeEvent,
     isDotCom,
-    isError,
     openCtx,
     pendingOperation,
     shareReplay,
-    startWith,
     switchMap,
 } from '@sourcegraph/cody-shared'
 import { Observable, map } from 'observable-fns'
 import * as vscode from 'vscode'
 import { URI } from 'vscode-uri'
 import { getSelectionOrFileContext } from '../commands/context/selection'
-import { createRepositoryMention } from '../context/openctx/common/get-repository-mentions'
 import { remoteReposForAllWorkspaceFolders } from '../repository/remoteRepos'
 import { ChatBuilder } from './chat-view/ChatBuilder'
-import {
-    activeEditorContextForOpenCtxMentions,
-    contextItemMentionFromOpenCtxItem,
-} from './context/chatContext'
+import { GitignoreFilter } from './gitignore_filter'
 
-/**
- * Observe the initial context that should be populated in the chat message input field.
- */
+interface RemoteRepoInfo {
+    name: string
+    id?: number | string
+    url?: string
+    description?: string
+}
+
+function createEmptyObservable<T>(): Observable<T[]> {
+    return new Observable<T[]>(observer => {
+        observer.next([])
+        observer.complete()
+    })
+}
+
+function combineLatestWithTypes<T1, T2, T3, T4>(
+    o1: Observable<T1>,
+    o2: Observable<T2>,
+    o3: Observable<T3>,
+    o4: Observable<T4>
+): Observable<[T1, T2, T3, T4]> {
+    return new Observable<[T1, T2, T3, T4]>(observer => {
+        const values: [T1 | undefined, T2 | undefined, T3 | undefined, T4 | undefined] = [undefined, undefined, undefined, undefined]
+        const subscriptions = [
+            o1.subscribe({
+                next: value => {
+                    values[0] = value
+                    if (values.every(v => v !== undefined)) {
+                        observer.next(values as [T1, T2, T3, T4])
+                    }
+                },
+                error: (err: Error) => observer.error(err),
+            }),
+            o2.subscribe({
+                next: value => {
+                    values[1] = value
+                    if (values.every(v => v !== undefined)) {
+                        observer.next(values as [T1, T2, T3, T4])
+                    }
+                },
+                error: (err: Error) => observer.error(err),
+            }),
+            o3.subscribe({
+                next: value => {
+                    values[2] = value
+                    if (values.every(v => v !== undefined)) {
+                        observer.next(values as [T1, T2, T3, T4])
+                    }
+                },
+                error: (err: Error) => observer.error(err),
+            }),
+            o4.subscribe({
+                next: value => {
+                    values[3] = value
+                    if (values.every(v => v !== undefined)) {
+                        observer.next(values as [T1, T2, T3, T4])
+                    }
+                },
+                error: (err: Error) => observer.error(err),
+            }),
+        ]
+        return () => subscriptions.forEach(sub => sub.unsubscribe())
+    })
+}
+
 export function observeDefaultContext({
     chatBuilder,
 }: {
     chatBuilder: Observable<ChatBuilder>
 }): Observable<DefaultContext | typeof pendingOperation> {
-    return combineLatest(
-        getCurrentFileOrSelection({ chatBuilder }).pipe(distinctUntilChanged()),
-        getCorpusContextItemsForEditorState().pipe(distinctUntilChanged()),
-        getOpenCtxContextItems().pipe(distinctUntilChanged()),
-        featureFlagProvider.evaluatedFeatureFlag(FeatureFlag.NoDefaultRepoChip)
-    ).pipe(
-        debounceTime(50),
-        map(
-            ([currentFileOrSelectionContext, corpusContext, openctxContext, noDefaultRepoChip]):
-                | DefaultContext
-                | typeof pendingOperation => {
-                if (corpusContext === pendingOperation) {
-                    return pendingOperation
+    return new Observable<DefaultContext | typeof pendingOperation>(observer => {
+        const fileContext$ = getCurrentFileOrSelection({ chatBuilder }).pipe(distinctUntilChanged())
+        const corpusContext$ = getCorpusContextItemsForEditorState().pipe(distinctUntilChanged())
+        const openCtxContext$ = getOpenCtxContextItems().pipe(distinctUntilChanged())
+        const noDefaultRepoChip$ = featureFlagProvider.evaluatedFeatureFlag(FeatureFlag.NoDefaultRepoChip)
+
+        const subscription = combineLatestWithTypes(
+            fileContext$,
+            corpusContext$,
+            openCtxContext$,
+            noDefaultRepoChip$
+        ).subscribe({
+            next: ([fileContext, corpusContext, openCtxContext]) => {
+                if (
+                    typeof fileContext === 'symbol' ||
+                    typeof corpusContext === 'symbol' ||
+                    typeof openCtxContext === 'symbol'
+                ) {
+                    observer.next(pendingOperation)
+                    return
                 }
-                if (noDefaultRepoChip) {
-                    return {
-                        initialContext: [
-                            ...(openctxContext === pendingOperation ? [] : openctxContext),
-                            ...(currentFileOrSelectionContext === pendingOperation
-                                ? []
-                                : currentFileOrSelectionContext),
-                        ],
-                        corpusContext,
-                    }
-                }
-                return {
+
+                observer.next({
                     initialContext: [
-                        ...(openctxContext === pendingOperation ? [] : openctxContext),
-                        ...(currentFileOrSelectionContext === pendingOperation
-                            ? []
-                            : currentFileOrSelectionContext),
-                        ...corpusContext,
+                        ...(openCtxContext || []),
+                        ...(fileContext || []),
+                        ...(corpusContext || []),
                     ],
                     corpusContext: [],
-                }
-            }
-        )
-    )
+                })
+            },
+            error: (error: Error) => observer.error(error),
+            complete: () => observer.complete(),
+        })
+
+        return () => subscription.unsubscribe()
+    })
 }
 
 const activeTextEditor = fromVSCodeEvent(
@@ -91,214 +137,116 @@ const activeTextEditor = fromVSCodeEvent(
     () => vscode.window.activeTextEditor
 ).pipe(shareReplay())
 
-function getCurrentFileOrSelection({
+export function getCurrentFileOrSelection({
     chatBuilder,
-}: { chatBuilder: Observable<ChatBuilder> }): Observable<ContextItem[] | typeof pendingOperation> {
-    /**
-     * If the active text editor changes, this observable immediately emits.
-     *
-     * If *only* the active selection changes, it debounces 200ms before emitting so we don't spam a
-     * bunch of minor updates as the user is actively moving their cursor or changing their
-     * selection.
-     */
-    const selectionOrFileChanged = activeTextEditor.pipe(
-        switchMap(() =>
-            fromVSCodeEvent(vscode.window.onDidChangeTextEditorSelection).pipe(
-                debounceTime(200),
-                startWith(undefined),
-                map(() => vscode.window.activeTextEditor?.selection)
-            )
-        )
-    )
-    const selectionOrFileContext = selectionOrFileChanged.pipe(
-        abortableOperation(() => getSelectionOrFileContext())
-    )
-
-    return combineLatest(selectionOrFileContext, ChatBuilder.contextWindowForChat(chatBuilder)).pipe(
-        switchMap(
-            ([selectionOrFileContext, contextWindow]): Observable<
-                ContextItem[] | typeof pendingOperation
-            > => {
-                if (contextWindow === pendingOperation) {
-                    return Observable.of(pendingOperation)
-                }
-                const userContextSize = isError(contextWindow)
-                    ? undefined
-                    : contextWindow.context?.user ?? contextWindow.input
-
-                const items: ContextItem[] = []
-
-                const contextFile = selectionOrFileContext[0]
-                if (contextFile) {
-                    const range = contextFile.range ? expandToLineRange(contextFile.range) : undefined
-
-                    // Always add the current file item
-                    items.push({
-                        ...contextFile,
-                        type: 'file',
-                        title: 'Current File',
-                        description: displayPathBasename(contextFile.uri),
-                        range: undefined,
-                        isTooLarge:
-                            userContextSize !== undefined &&
-                            contextFile.size !== undefined &&
-                            contextFile.size > userContextSize,
-                        source: ContextItemSource.Initial,
-                        icon: 'file',
-                    })
-
-                    // Add the current selection item if there's a range
-                    if (range) {
-                        items.push({
-                            ...contextFile,
-                            type: 'file',
-                            title: 'Current Selection',
-                            description: `${displayPathBasename(contextFile.uri)}:${displayLineRange(
-                                range
-                            )}`,
-                            range,
-                            isTooLarge:
-                                userContextSize !== undefined &&
-                                contextFile.size !== undefined &&
-                                contextFile.size > userContextSize,
-                            source: ContextItemSource.Initial,
-                            icon: 'list-selection',
-                        })
-                    }
-                }
-                return Observable.of(items)
+}: {
+    chatBuilder: Observable<ChatBuilder>
+}): Observable<ContextItem[]> {
+    return activeTextEditor.pipe(
+        switchMap(editor => {
+            if (!editor) {
+                return createEmptyObservable<ContextItem>()
             }
-        )
+
+            const workspaceFolder = vscode.workspace.getWorkspaceFolder(editor.document.uri)
+            if (!workspaceFolder) {
+                return createEmptyObservable<ContextItem>()
+            }
+
+            // Get gitignore filter for the workspace
+            const filter = new GitignoreFilter(workspaceFolder.uri.fsPath)
+
+            // Check if the current file should be included
+            if (!filter.shouldIncludeInContext(editor.document.uri.fsPath)) {
+                return createEmptyObservable<ContextItem>()
+            }
+
+            return new Observable<ContextItem[]>(observer => {
+                getSelectionOrFileContext().then(items => {
+                    observer.next(items)
+                    observer.complete()
+                }).catch(error => {
+                    console.error('Error getting selection context:', error)
+                    observer.next([])
+                    observer.complete()
+                })
+            })
+        })
     )
 }
 
-export function getCorpusContextItemsForEditorState(): Observable<
-    ContextItem[] | typeof pendingOperation
-> {
+export function getCorpusContextItemsForEditorState(): Observable<ContextItem[]> {
     const relevantAuthStatus = authStatus.pipe(
-        map(
-            authStatus =>
-                ({
-                    authenticated: authStatus.authenticated,
-                    endpoint: authStatus.endpoint,
-                    allowRemoteContext: clientCapabilities().isCodyWeb || !isDotCom(authStatus),
-                }) satisfies Pick<AuthStatus, 'authenticated' | 'endpoint'> & {
-                    allowRemoteContext: boolean
-                }
-        ),
+        map((status): Partial<AuthenticatedAuthStatus> => ({
+            authenticated: isDotCom(status.endpoint) && status.authenticated ? true : undefined,
+            endpoint: isDotCom(status.endpoint) ? status.endpoint : '',
+            username: '',
+            displayName: '',
+            avatarURL: '',
+            primaryEmail: '',
+            pendingValidation: true as const,
+            organizations: [],
+        })),
         distinctUntilChanged()
     )
 
-    return combineLatest(relevantAuthStatus, remoteReposForAllWorkspaceFolders).pipe(
-        abortableOperation(async ([authStatus, remoteReposForAllWorkspaceFolders], signal) => {
-            const items: ContextItem[] = []
+    return new Observable<ContextItem[]>(observer => {
+        const subscription = combineLatestWithTypes(
+            relevantAuthStatus,
+            remoteReposForAllWorkspaceFolders,
+            createEmptyObservable<never>(),
+            createEmptyObservable<never>()
+        ).subscribe({
+            next: ([status, repos]) => {
+                if (!status.authenticated || !Array.isArray(repos) || repos.length === 0) {
+                    observer.next([])
+                    return
+                }
 
-            // TODO(sqs): Make this consistent between self-serve (no remote search) and enterprise (has
-            // remote search). There should be a single internal thing in Cody that lets you monitor the
-            // user's current codebase.
-            if (authStatus.allowRemoteContext) {
-                if (remoteReposForAllWorkspaceFolders === pendingOperation) {
-                    return pendingOperation
-                }
-                if (isError(remoteReposForAllWorkspaceFolders)) {
-                    throw remoteReposForAllWorkspaceFolders
-                }
-                for (const repo of remoteReposForAllWorkspaceFolders) {
-                    if (await contextFiltersProvider.isRepoNameIgnored(repo.name)) {
-                        continue
-                    }
-                    if (repo.id === undefined) {
-                        continue
-                    }
-                    items.push({
-                        ...contextItemMentionFromOpenCtxItem(
-                            await createRepositoryMention(
-                                {
-                                    id: repo.id,
-                                    name: repo.name,
-                                    url: repo.name,
-                                },
-                                REMOTE_REPOSITORY_PROVIDER_URI,
-                                authStatus
-                            )
-                        ),
-                        title: 'Current Repository',
-                        description: repo.name,
-                        source: ContextItemSource.Initial,
-                        icon: 'folder',
-                    })
-                }
-            } else {
-                // TODO(sqs): Support multi-root. Right now, this only supports the 1st workspace root.
-                const workspaceFolder = vscode.workspace.workspaceFolders?.at(0)
-                if (workspaceFolder) {
-                    items.push({
-                        type: 'tree',
-                        uri: workspaceFolder.uri,
-                        title: 'Current Repository',
-                        name: workspaceFolder.name,
-                        description: workspaceFolder.name,
-                        isWorkspaceRoot: true,
-                        content: null,
-                        source: ContextItemSource.Initial,
-                        icon: 'folder',
-                    } satisfies ContextItemTree)
-                }
-            }
+                const items: ContextItemRepository[] = repos.map((repo: RemoteRepoInfo) => ({
+                    type: 'repository',
+                    provider: 'openctx',
+                    uri: URI.parse(repo.url || ''),
+                    repoName: repo.name || '',
+                    repoID: repo.id?.toString() || repo.name || '',
+                    content: null,
+                    title: repo.name || '',
+                    description: repo.description || '',
+                    providerUri: REMOTE_REPOSITORY_PROVIDER_URI,
+                }))
 
-            return items
+                observer.next(items)
+            },
+            error: (error: Error) => observer.error(error),
+            complete: () => observer.complete(),
         })
-    )
+
+        return () => subscription.unsubscribe()
+    })
 }
 
-function getOpenCtxContextItems(): Observable<ContextItem[] | typeof pendingOperation> {
+function getOpenCtxContextItems(): Observable<ContextItem[]> {
     const openctxController = openCtx.controller
     if (!openctxController) {
-        return Observable.of([])
+        return createEmptyObservable<ContextItem>()
     }
 
-    return openctxController.metaChanges({}).pipe(
-        switchMap((providers): Observable<ContextItem[] | typeof pendingOperation> => {
-            const providersWithAutoInclude = providers.filter(meta => meta.mentions?.autoInclude)
-            if (providersWithAutoInclude.length === 0) {
-                return Observable.of([])
+    return new Observable<ContextItem[]>(observer => {
+        openctxController.mentions({}, { providerUri: undefined }).then(
+            items => {
+                observer.next(items.map(item => ({
+                    type: 'openctx',
+                    provider: 'openctx',
+                    ...item,
+                    uri: URI.parse(item.uri),
+                } as ContextItemOpenCtx)))
+                observer.complete()
+            },
+            error => {
+                console.error('Error getting OpenCtx items:', error)
+                observer.next([])
+                observer.complete()
             }
-
-            return activeTextEditor.pipe(
-                debounceTime(50),
-                switchMap(() => activeEditorContextForOpenCtxMentions),
-                switchMap(activeEditorContext => {
-                    if (activeEditorContext === pendingOperation) {
-                        return Observable.of(pendingOperation)
-                    }
-                    if (isError(activeEditorContext)) {
-                        return Observable.of([])
-                    }
-                    return combineLatest(
-                        ...providersWithAutoInclude.map(provider =>
-                            openctxController.mentionsChanges(
-                                { ...activeEditorContext, autoInclude: true },
-                                provider
-                            )
-                        )
-                    ).pipe(
-                        map(mentionsResults =>
-                            mentionsResults.flat().map(
-                                mention =>
-                                    ({
-                                        ...mention,
-                                        provider: 'openctx',
-                                        type: 'openctx',
-                                        uri: URI.parse(mention.uri),
-                                        source: ContextItemSource.Initial,
-                                        mention, // include the original mention to pass to `items` later
-                                    }) satisfies ContextItem
-                            )
-                        ),
-                        startWith(pendingOperation)
-                    )
-                })
-            )
-        })
-    )
+        )
+    })
 }

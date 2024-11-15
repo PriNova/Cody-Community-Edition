@@ -11,3 +11,4 @@ tsconfig.typehacks.json
 
 # these are snapshots that haven't been accepted
 *.new.json
+build_and_push.py
